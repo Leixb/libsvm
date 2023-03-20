@@ -2802,7 +2802,7 @@ int svm_save_model(const char *model_file_name, const svm_model *model)
 	if(param.kernel_type == POLY)
 		fprintf(fp,"degree %d\n", param.degree);
 
-	if(param.kernel_type == POLY || param.kernel_type == RBF || param.kernel_type == SIGMOID)
+	if(param.kernel_type == POLY || param.kernel_type == RBF || param.kernel_type == SIGMOID || param.kernel_type == ASIN || param.kernel_type == ASIN_NORM)
 		fprintf(fp,"gamma %.17g\n", param.gamma);
 
 	if(param.kernel_type == POLY || param.kernel_type == SIGMOID)
@@ -3226,7 +3226,7 @@ const char *svm_check_parameter(const svm_problem *prob, const svm_parameter *pa
     )
 		return "unknown kernel type";
 
-	if((kernel_type == POLY || kernel_type == RBF || kernel_type == SIGMOID) &&
+	if((kernel_type == POLY || kernel_type == RBF || kernel_type == SIGMOID || kernel_type == ASIN || kernel_type == ASIN_NORM) &&
 	   param->gamma < 0)
 		return "gamma < 0";
 
