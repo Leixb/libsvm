@@ -27,6 +27,7 @@ void exit_with_help()
 	"	4 -- precomputed kernel (kernel values in training_set_file)\n"
     "	5 -- asin kernel: 2/pi*asin(1 + u'*v)/sqrt(1/(2*gamma + 1 + u'*u) + 1/(2*gamma + 1 + v'*v))\n"
     "	6 -- asin kernel normalized\n"
+    "	7 -- acos n=0: 1 - 1/pi*acos(u'*v/(||u||*||v||))\n"
 	"-d degree : set degree in kernel function (default 3)\n"
 	"-g gamma : set gamma in kernel function (default 1/num_features)\n"
 	"-r coef0 : set coef0 in kernel function (default 0)\n"

@@ -268,6 +268,10 @@ private:
     {
         return asin_elm(x[i], x[j], gamma)/sqrt(asin_elm(x[i], x[i], gamma)*asin_elm(x[j], x[j], gamma));
     }
+    double kernel_acos_0(int i, int j) const
+    {
+        return 1 - M_1_PI*acos(dot(x[i], x[j])/sqrt(dot(x[i], x[i])*dot(x[j], x[j])));
+    }
 };
 
 Kernel::Kernel(int l, svm_node * const * x_, const svm_parameter& param)
@@ -296,6 +300,9 @@ Kernel::Kernel(int l, svm_node * const * x_, const svm_parameter& param)
             break;
         case ASIN_NORM:
             kernel_function = &Kernel::kernel_asin_norm;
+            break;
+        case ACOS_0:
+            kernel_function = &Kernel::kernel_acos_0;
             break;
 	}
 
@@ -397,6 +404,8 @@ double Kernel::k_function(const svm_node *x, const svm_node *y,
             return asin_elm(x, y, param.gamma);
         case ASIN_NORM:
             return asin_elm(x, y, param.gamma)/sqrt(asin_elm(x, x, param.gamma)*asin_elm(y, y, param.gamma));
+        case ACOS_0:
+            return 1 - M_1_PI*acos(dot(x, y)/sqrt(dot(x, x)*dot(y, y)));
 		default:
 			return 0;  // Unreachable
 	}
@@ -2780,7 +2789,7 @@ static const char *svm_type_table[] =
 
 static const char *kernel_type_table[]=
 {
-	"linear","polynomial","rbf","sigmoid","precomputed","asin","asin_norm",NULL
+	"linear","polynomial","rbf","sigmoid","precomputed","asin","asin_norm","acos_0",NULL
 };
 
 int svm_save_model(const char *model_file_name, const svm_model *model)
@@ -3222,7 +3231,8 @@ const char *svm_check_parameter(const svm_problem *prob, const svm_parameter *pa
 	   kernel_type != SIGMOID &&
 	   kernel_type != PRECOMPUTED &&
 	   kernel_type != ASIN &&
-       kernel_type != ASIN_NORM
+       kernel_type != ASIN_NORM &&
+       kernel_type != ACOS_0
     )
 		return "unknown kernel type";
 
