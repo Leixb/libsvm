@@ -14,6 +14,12 @@ endif
 
 all: svm-train svm-predict svm-scale
 
+debug: CFLAGS += -g -DDEBUG
+debug: all
+
+lib-debug: CFLAGS += -g -DDEBUG
+lib-debug: lib
+
 lib: svm.o
 	$(CXX) $(SHARED_LIB_FLAG) svm.o -o libsvm.so.$(SHVER)
 svm-predict: svm-predict.c svm.o
