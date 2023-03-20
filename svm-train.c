@@ -29,6 +29,7 @@ void exit_with_help()
     "	6 -- asin kernel normalized\n"
     "	7 -- acos n=0: 1 - 1/pi*acos(u'*v/(||u||*||v||))\n"
     "	8 -- acos n=1: 1/pi||u||*||v||*(sin(theta)+(pi-theta)*cos(theta))\n"
+    "	9 -- acos n=2: 1/pi||u||^2*||v||^2*(3sin(theta)cos(theta)+(pi-theta)*(1 + 2cos^2(theta))\n"
 	"-d degree : set degree in kernel function (default 3)\n"
 	"-g gamma : set gamma in kernel function (default 1/num_features)\n"
 	"-r coef0 : set coef0 in kernel function (default 0)\n"

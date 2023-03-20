@@ -279,6 +279,14 @@ private:
         const double theta = acos(xy_xy);
         return M_1_PI*xy*(sin(theta) + (M_PI - theta)*xy_xy);
     }
+    double kernel_acos_2(int i, int j) const
+    {
+        const double xy2 = dot(x[i], x[i])*dot(x[j], x[j]);
+        const double xy = sqrt(xy2);
+        const double xy_xy = dot(x[i], x[j])/xy;
+        const double theta = acos(xy_xy);
+        return M_1_PI*xy2*(3*sin(theta)*xy_xy + (M_PI - theta)*(1 + 2*xy_xy*xy_xy));
+    }
 };
 
 Kernel::Kernel(int l, svm_node * const * x_, const svm_parameter& param)
@@ -313,6 +321,9 @@ Kernel::Kernel(int l, svm_node * const * x_, const svm_parameter& param)
             break;
         case ACOS_1:
             kernel_function = &Kernel::kernel_acos_1;
+            break;
+        case ACOS_2:
+            kernel_function = &Kernel::kernel_acos_2;
             break;
 	}
 
@@ -422,6 +433,14 @@ double Kernel::k_function(const svm_node *x, const svm_node *y,
                 const double xy_xy = dot(x, y)/xy;
                 const double theta = acos(xy_xy);
                 return M_1_PI*xy*(sin(theta) + (M_PI - theta)*xy_xy);
+            }
+        case ACOS_2:
+            {
+                const double xy2 = dot(x, x)*dot(y, y);
+                const double xy = sqrt(xy2);
+                const double xy_xy = dot(x, y)/xy;
+                const double theta = acos(xy_xy);
+                return M_1_PI*xy2*(3*sin(theta)*xy_xy + (M_PI - theta)*(1 + 2*xy_xy*xy_xy));
             }
 		default:
 			return 0;  // Unreachable
@@ -2806,7 +2825,7 @@ static const char *svm_type_table[] =
 
 static const char *kernel_type_table[]=
 {
-	"linear","polynomial","rbf","sigmoid","precomputed","asin","asin_norm","acos_0","acos_1",NULL
+	"linear","polynomial","rbf","sigmoid","precomputed","asin","asin_norm","acos_0","acos_1","acos_2",NULL
 };
 
 int svm_save_model(const char *model_file_name, const svm_model *model)
@@ -3250,7 +3269,8 @@ const char *svm_check_parameter(const svm_problem *prob, const svm_parameter *pa
 	   kernel_type != ASIN &&
        kernel_type != ASIN_NORM &&
        kernel_type != ACOS_0 &&
-       kernel_type != ACOS_1
+       kernel_type != ACOS_1 &&
+       kernel_type != ACOS_2
     )
 		return "unknown kernel type";
 
