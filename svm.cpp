@@ -262,11 +262,11 @@ private:
 	}
     double kernel_asin(int i, int j) const
     {
-        #ifdef NORMALIZE
-            return asin_elm(x[i], x[j], gamma)/sqrt(asin_elm(x[i], x[i], gamma)*asin_elm(x[j], x[j], gamma));
-        #else
-            return asin_elm(x[i], x[j], gamma);
-        #endif
+        return asin_elm(x[i], x[j], gamma);
+    }
+    double kernel_asin_norm(int i, int j) const
+    {
+        return asin_elm(x[i], x[j], gamma)/sqrt(asin_elm(x[i], x[i], gamma)*asin_elm(x[j], x[j], gamma));
     }
 };
 
@@ -294,11 +294,14 @@ Kernel::Kernel(int l, svm_node * const * x_, const svm_parameter& param)
         case ASIN:
             kernel_function = &Kernel::kernel_asin;
             break;
+        case ASIN_NORM:
+            kernel_function = &Kernel::kernel_asin_norm;
+            break;
 	}
 
 	clone(x,x_,l);
 
-	if(kernel_type == RBF || kernel_type == ASIN)
+	if(kernel_type == RBF || kernel_type == ASIN || kernel_type == ASIN_NORM)
 	{
 		x_square = new double[l];
 		for(int i=0;i<l;i++)
@@ -391,11 +394,9 @@ double Kernel::k_function(const svm_node *x, const svm_node *y,
 		case PRECOMPUTED:  //x: test (validation), y: SV
 			return x[(int)(y->value)].value;
         case ASIN:
-            #ifdef NORMALIZE
-                return asin_elm(x, y, param.gamma)/sqrt(asin_elm(x, x, param.gamma)*asin_elm(y, y, param.gamma));
-            #else
-                return asin_elm(x, y, param.gamma);
-            #endif
+            return asin_elm(x, y, param.gamma);
+        case ASIN_NORM:
+            return asin_elm(x, y, param.gamma)/sqrt(asin_elm(x, x, param.gamma)*asin_elm(y, y, param.gamma));
 		default:
 			return 0;  // Unreachable
 	}
@@ -2779,7 +2780,7 @@ static const char *svm_type_table[] =
 
 static const char *kernel_type_table[]=
 {
-	"linear","polynomial","rbf","sigmoid","precomputed","asin",NULL
+	"linear","polynomial","rbf","sigmoid","precomputed","asin","asin_norm",NULL
 };
 
 int svm_save_model(const char *model_file_name, const svm_model *model)
@@ -3220,7 +3221,8 @@ const char *svm_check_parameter(const svm_problem *prob, const svm_parameter *pa
 	   kernel_type != RBF &&
 	   kernel_type != SIGMOID &&
 	   kernel_type != PRECOMPUTED &&
-	   kernel_type != ASIN
+	   kernel_type != ASIN &&
+       kernel_type != ASIN_NORM
     )
 		return "unknown kernel type";
 
