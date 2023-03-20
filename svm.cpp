@@ -252,6 +252,13 @@ private:
 	{
 		return x[i][(int)(x[j][0].value)].value;
 	}
+    double kernel_asin(int i, int j) const
+    {
+        return M_2_PI*asin((1 + dot(x[i],x[j]))/sqrt(
+                               (1/(2.0*gamma*gamma) + 1.0 + x_square[i])* // dot(x[i],x[i]) == x_square[i]
+                               (1/(2.0*gamma*gamma) + 1.0 + x_square[j]   // TODO: all constants as gamma?
+                           )));
+    }
 };
 
 Kernel::Kernel(int l, svm_node * const * x_, const svm_parameter& param)
@@ -275,11 +282,14 @@ Kernel::Kernel(int l, svm_node * const * x_, const svm_parameter& param)
 		case PRECOMPUTED:
 			kernel_function = &Kernel::kernel_precomputed;
 			break;
+        case ASIN:
+            kernel_function = &Kernel::kernel_asin;
+            break;
 	}
 
 	clone(x,x_,l);
 
-	if(kernel_type == RBF)
+	if(kernel_type == RBF || kernel_type == ASIN)
 	{
 		x_square = new double[l];
 		for(int i=0;i<l;i++)
@@ -371,6 +381,11 @@ double Kernel::k_function(const svm_node *x, const svm_node *y,
 			return tanh(param.gamma*dot(x,y)+param.coef0);
 		case PRECOMPUTED:  //x: test (validation), y: SV
 			return x[(int)(y->value)].value;
+        case ASIN:
+            return M_2_PI*asin((1 + dot(x,y))/sqrt(
+                                   (1/(2.0*param.gamma*param.gamma) + 1.0 + dot(x,x))*
+                                   (1/(2.0*param.gamma*param.gamma) + 1.0 + dot(y,y)  
+                               )));
 		default:
 			return 0;  // Unreachable
 	}
@@ -2754,7 +2769,7 @@ static const char *svm_type_table[] =
 
 static const char *kernel_type_table[]=
 {
-	"linear","polynomial","rbf","sigmoid","precomputed",NULL
+	"linear","polynomial","rbf","sigmoid","precomputed","asin",NULL
 };
 
 int svm_save_model(const char *model_file_name, const svm_model *model)
@@ -3194,7 +3209,9 @@ const char *svm_check_parameter(const svm_problem *prob, const svm_parameter *pa
 	   kernel_type != POLY &&
 	   kernel_type != RBF &&
 	   kernel_type != SIGMOID &&
-	   kernel_type != PRECOMPUTED)
+	   kernel_type != PRECOMPUTED &&
+	   kernel_type != ASIN
+    )
 		return "unknown kernel type";
 
 	if((kernel_type == POLY || kernel_type == RBF || kernel_type == SIGMOID) &&
