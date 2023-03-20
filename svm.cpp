@@ -232,6 +232,14 @@ private:
 	const double coef0;
 
 	static double dot(const svm_node *px, const svm_node *py);
+
+    static inline double asin_elm(const svm_node *x, const svm_node *y, double gamma) { 
+        return asin((1 + dot(x, y))/sqrt(
+                        (gamma + 1.0 + dot(x, x))*
+                        (gamma + 1.0 + dot(y, y))
+                    ));
+    }
+
 	double kernel_linear(int i, int j) const
 	{
 		return dot(x[i],x[j]);
@@ -254,10 +262,11 @@ private:
 	}
     double kernel_asin(int i, int j) const
     {
-        return M_2_PI*asin((1 + dot(x[i],x[j]))/sqrt(
-                               (1/(2.0*gamma*gamma) + 1.0 + x_square[i])* // dot(x[i],x[i]) == x_square[i]
-                               (1/(2.0*gamma*gamma) + 1.0 + x_square[j]   // TODO: all constants as gamma?
-                           )));
+        #ifdef NORMALIZE
+            return asin_elm(x[i], x[j], gamma)/sqrt(asin_elm(x[i], x[i], gamma)*asin_elm(x[j], x[j], gamma));
+        #else
+            return asin_elm(x[i], x[j], gamma);
+        #endif
     }
 };
 
@@ -382,10 +391,11 @@ double Kernel::k_function(const svm_node *x, const svm_node *y,
 		case PRECOMPUTED:  //x: test (validation), y: SV
 			return x[(int)(y->value)].value;
         case ASIN:
-            return M_2_PI*asin((1 + dot(x,y))/sqrt(
-                                   (1/(2.0*param.gamma*param.gamma) + 1.0 + dot(x,x))*
-                                   (1/(2.0*param.gamma*param.gamma) + 1.0 + dot(y,y)  
-                               )));
+            #ifdef NORMALIZE
+                return asin_elm(x, y, param.gamma)/sqrt(asin_elm(x, x, param.gamma)*asin_elm(y, y, param.gamma));
+            #else
+                return asin_elm(x, y, param.gamma);
+            #endif
 		default:
 			return 0;  // Unreachable
 	}

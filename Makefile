@@ -17,6 +17,9 @@ all: svm-train svm-predict svm-scale
 debug: CFLAGS += -g -DDEBUG
 debug: all
 
+normalize: CFLAGS += -DNORMALIZE
+normalize: all
+
 lib-debug: CFLAGS += -g -DDEBUG
 lib-debug: lib
 
