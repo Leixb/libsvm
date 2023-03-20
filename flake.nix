@@ -20,7 +20,10 @@
         };
 
         devShells.default = pkgs.mkShell {
-          buildInputs = [ ];
+          buildInputs = with pkgs; [
+            hyperfine
+            gdb
+          ];
         };
       }
     );
