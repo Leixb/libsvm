@@ -1,6 +1,7 @@
 { lib
 , stdenv
 , fixDarwinDylibNames
+, llvmPackages
 , withOpenMP ? true
 }:
 
@@ -10,7 +11,9 @@ stdenv.mkDerivation {
 
   src = ./.;
 
-  patches = lib.optional (!stdenv.isDarwin && withOpenMP) [ ./openmp.patch ];
+  patches = lib.optionals withOpenMP [ ./openmp.patch ];
+
+  buildInputs = lib.optionals (stdenv.cc.isClang && withOpenMP) [ llvmPackages.openmp ];
 
   buildFlags = [ "lib" "all" ];
 
