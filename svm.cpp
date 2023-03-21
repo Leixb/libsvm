@@ -10,6 +10,9 @@
 #include "svm.h"
 #ifdef _OPENMP
 #include <omp.h>
+#else
+#define omp_get_max_threads() 0
+#define omp_set_num_threads(num_threads) void
 #endif
 
 int libsvm_version = LIBSVM_VERSION;
@@ -3386,4 +3389,14 @@ void svm_set_print_string_function(void (*print_func)(const char *))
 		svm_print_string = &print_string_stdout;
 	else
 		svm_print_string = print_func;
+}
+
+void svm_set_num_threads(int num_threads)
+{
+	omp_set_num_threads(num_threads);
+}
+
+int svm_get_max_threads()
+{
+	return omp_get_max_threads();
 }
