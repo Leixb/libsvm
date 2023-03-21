@@ -13,10 +13,15 @@
       in
       {
         packages = {
-          default = self.outputs.packages.${system}.libsvm;
+          default = self.outputs.packages.${system}.libsvm-all;
 
           libsvm = pkgs.callPackage ./default.nix { };
           libsvm-no-omp = pkgs.callPackage ./default.nix { withOpenMP = false; };
+
+          libsvm-all = pkgs.symlinkJoin {
+            name = "libsvm-all";
+            paths = with self.packages.${system}.libsvm; [ bin out dev ];
+          };
         };
 
         devShells.default = pkgs.mkShell {
