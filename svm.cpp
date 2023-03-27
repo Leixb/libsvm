@@ -236,11 +236,15 @@ private:
 
 	static double dot(const svm_node *px, const svm_node *py);
 
-    static inline double asin_elm(const svm_node *x, const svm_node *y, double gamma) { 
+    static inline double asin_elm(const svm_node *x, const svm_node *y, const double gamma) { 
         return asin((1 + dot(x, y))/sqrt(
                         (gamma + 1.0 + dot(x, x))*
                         (gamma + 1.0 + dot(y, y))
                     ));
+    }
+
+    static inline double asin_elm_equal(const svm_node *x, const double gamma) {
+        return asin((1 + dot(x, x))/(gamma + 1.0 + dot(x, x)));
     }
 
 	double kernel_linear(int i, int j) const
@@ -269,7 +273,9 @@ private:
     }
     double kernel_asin_norm(int i, int j) const
     {
-        return asin_elm(x[i], x[j], gamma)/sqrt(asin_elm(x[i], x[i], gamma)*asin_elm(x[j], x[j], gamma));
+        return asin_elm(x[i], x[j], gamma)/sqrt(
+            asin_elm_equal(x[i], gamma)*asin_elm_equal(x[j], gamma)
+        );
     }
     double kernel_acos_0(int i, int j) const
     {
