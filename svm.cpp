@@ -265,7 +265,7 @@ private:
 	}
     double kernel_asin(int i, int j) const
     {
-        return asin_elm(x[i], x[j], gamma);
+        return M_2_PI*asin_elm(x[i], x[j], gamma);
     }
     double kernel_asin_norm(int i, int j) const
     {
@@ -425,7 +425,7 @@ double Kernel::k_function(const svm_node *x, const svm_node *y,
 		case PRECOMPUTED:  //x: test (validation), y: SV
 			return x[(int)(y->value)].value;
         case ASIN:
-            return asin_elm(x, y, param.gamma);
+            return M_2_PI*asin_elm(x, y, param.gamma);
         case ASIN_NORM:
             return asin_elm(x, y, param.gamma)/sqrt(asin_elm(x, x, param.gamma)*asin_elm(y, y, param.gamma));
         case ACOS_0:
