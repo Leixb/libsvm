@@ -489,7 +489,7 @@ public:
 
 	void Solve(int l, const QMatrix& Q, const double *p_, const schar *y_,
 		   double *alpha_, double Cp, double Cn, double eps,
-		   SolutionInfo* si, int shrinking);
+		   SolutionInfo* si, int shrinking, int max_iter);
 protected:
 	int active_size;
 	schar *y;
@@ -587,7 +587,7 @@ void Solver::reconstruct_gradient()
 
 void Solver::Solve(int l, const QMatrix& Q, const double *p_, const schar *y_,
 		   double *alpha_, double Cp, double Cn, double eps,
-		   SolutionInfo* si, int shrinking)
+		   SolutionInfo* si, int shrinking, int max_iter)
 {
 	this->l = l;
 	this->Q = &Q;
@@ -642,11 +642,17 @@ void Solver::Solve(int l, const QMatrix& Q, const double *p_, const schar *y_,
 	// optimization step
 
 	int iter = 0;
-	int max_iter = max(10000000, l>INT_MAX/100 ? INT_MAX : 100*l);
 	int counter = min(l,1000)+1;
 
-	while(iter < max_iter)
+	while(true)
 	{
+
+		// set max_iter to -1 to disable the mechanism
+		if ((max_iter != -1) && (iter >= max_iter)) {
+			fprintf(stderr,"\nWARNING: reaching max number of iterations\n");
+			break;
+		}
+
 		// show progress and do shrinking
 
 		if(--counter == 0)
@@ -810,18 +816,6 @@ void Solver::Solve(int l, const QMatrix& Q, const double *p_, const schar *y_,
 						G_bar[k] += C_j * Q_j[k];
 			}
 		}
-	}
-
-	if(iter >= max_iter)
-	{
-		if(active_size < l)
-		{
-			// reconstruct the whole gradient to calculate objective value
-			reconstruct_gradient();
-			active_size = l;
-			info("*");
-		}
-		fprintf(stderr,"\nWARNING: reaching max number of iterations\n");
 	}
 
 	// calculate rho
@@ -1096,10 +1090,10 @@ public:
 	Solver_NU() {}
 	void Solve(int l, const QMatrix& Q, const double *p, const schar *y,
 		   double *alpha, double Cp, double Cn, double eps,
-		   SolutionInfo* si, int shrinking)
+		   SolutionInfo* si, int shrinking, int max_iter)
 	{
 		this->si = si;
-		Solver::Solve(l,Q,p,y,alpha,Cp,Cn,eps,si,shrinking);
+		Solver::Solve(l,Q,p,y,alpha,Cp,Cn,eps,si,shrinking,max_iter);
 	}
 private:
 	SolutionInfo *si;
@@ -1546,7 +1540,7 @@ static void solve_c_svc(
 
 	Solver s;
 	s.Solve(l, SVC_Q(*prob,*param,y), minus_ones, y,
-		alpha, Cp, Cn, param->eps, si, param->shrinking);
+		alpha, Cp, Cn, param->eps, si, param->shrinking, param->max_iter);
 
 	double sum_alpha=0;
 	for(i=0;i<l;i++)
@@ -1600,7 +1594,7 @@ static void solve_nu_svc(
 
 	Solver_NU s;
 	s.Solve(l, SVC_Q(*prob,*param,y), zeros, y,
-		alpha, 1.0, 1.0, param->eps, si,  param->shrinking);
+		alpha, 1.0, 1.0, param->eps, si,  param->shrinking, param->max_iter);
 	double r = si->r;
 
 	info("C = %f\n",1/r);
@@ -1643,7 +1637,7 @@ static void solve_one_class(
 
 	Solver s;
 	s.Solve(l, ONE_CLASS_Q(*prob,*param), zeros, ones,
-		alpha, 1.0, 1.0, param->eps, si, param->shrinking);
+		alpha, 1.0, 1.0, param->eps, si, param->shrinking, param->max_iter);
 
 	delete[] zeros;
 	delete[] ones;
@@ -1672,7 +1666,7 @@ static void solve_epsilon_svr(
 
 	Solver s;
 	s.Solve(2*l, SVR_Q(*prob,*param), linear_term, y,
-		alpha2, param->C, param->C, param->eps, si, param->shrinking);
+		alpha2, param->C, param->C, param->eps, si, param->shrinking, param->max_iter);
 
 	double sum_alpha = 0;
 	for(i=0;i<l;i++)
@@ -1713,7 +1707,7 @@ static void solve_nu_svr(
 
 	Solver_NU s;
 	s.Solve(2*l, SVR_Q(*prob,*param), linear_term, y,
-		alpha2, C, C, param->eps, si, param->shrinking);
+		alpha2, C, C, param->eps, si, param->shrinking, param->max_iter);
 
 	info("epsilon = %f\n",-si->r);
 

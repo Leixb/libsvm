@@ -41,6 +41,7 @@ void exit_with_help()
 	"-h shrinking : whether to use the shrinking heuristics, 0 or 1 (default 1)\n"
 	"-b probability_estimates : whether to train a SVC or SVR model for probability estimates, 0 or 1 (default 0)\n"
 	"-wi weight : set the parameter C of class i to weight*C, for C-SVC (default 1)\n"
+	"-i n: max number of iterations (default 10000000)\n"
 	"-v n: n-fold cross validation mode\n"
 	"-q : quiet mode (no outputs)\n"
 	);
@@ -181,6 +182,7 @@ void parse_command_line(int argc, char **argv, char *input_file_name, char *mode
 	param.p = 0.1;
 	param.shrinking = 1;
 	param.probability = 0;
+	param.max_iter = 10000000;
 	param.nr_weight = 0;
 	param.weight_label = NULL;
 	param.weight = NULL;
@@ -229,6 +231,9 @@ void parse_command_line(int argc, char **argv, char *input_file_name, char *mode
 				break;
 			case 'b':
 				param.probability = atoi(argv[i]);
+				break;
+			case 'i':
+				param.max_iter = atoi(argv[i]);
 				break;
 			case 'q':
 				print_func = &print_null;
