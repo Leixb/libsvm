@@ -236,16 +236,16 @@ private:
 
 	static double dot(const svm_node *px, const svm_node *py);
 
-    static inline double asin_elm(const svm_node *x, const svm_node *y, const double gamma) { 
-        return asin((1 + dot(x, y))/sqrt(
-                        (gamma + 1.0 + dot(x, x))*
-                        (gamma + 1.0 + dot(y, y))
-                    ));
-    }
+	static inline double asin_elm(const svm_node *x, const svm_node *y, const double gamma) { 
+		return asin((1 + dot(x, y))/sqrt(
+						(gamma + 1.0 + dot(x, x))*
+						(gamma + 1.0 + dot(y, y))
+					));
+	}
 
-    static inline double asin_elm_equal(const svm_node *x, const double gamma) {
-        return asin((1 + dot(x, x))/(gamma + 1.0 + dot(x, x)));
-    }
+	static inline double asin_elm_equal(const svm_node *x, const double gamma) {
+		return asin((1 + dot(x, x))/(gamma + 1.0 + dot(x, x)));
+	}
 
 	double kernel_linear(int i, int j) const
 	{
@@ -267,35 +267,35 @@ private:
 	{
 		return x[i][(int)(x[j][0].value)].value;
 	}
-    double kernel_asin(int i, int j) const
-    {
-        return M_2_PI*asin_elm(x[i], x[j], gamma);
-    }
-    double kernel_asin_norm(int i, int j) const
-    {
-        return asin_elm(x[i], x[j], gamma)/sqrt(
-            asin_elm_equal(x[i], gamma)*asin_elm_equal(x[j], gamma)
-        );
-    }
-    double kernel_acos_0(int i, int j) const
-    {
-        return 1 - M_1_PI*acos(dot(x[i], x[j])/sqrt(dot(x[i], x[i])*dot(x[j], x[j])));
-    }
-    double kernel_acos_1(int i, int j) const
-    {
-        const double xy = sqrt(dot(x[i], x[i])*dot(x[j], x[j]));
-        const double xy_xy = dot(x[i], x[j])/xy;
-        const double theta = acos(xy_xy);
-        return M_1_PI*xy*(sin(theta) + (M_PI - theta)*xy_xy);
-    }
-    double kernel_acos_2(int i, int j) const
-    {
-        const double xy2 = dot(x[i], x[i])*dot(x[j], x[j]);
-        const double xy = sqrt(xy2);
-        const double xy_xy = dot(x[i], x[j])/xy;
-        const double theta = acos(xy_xy);
-        return M_1_PI*xy2*(3*sin(theta)*xy_xy + (M_PI - theta)*(1 + 2*xy_xy*xy_xy));
-    }
+	double kernel_asin(int i, int j) const
+	{
+		return M_2_PI*asin_elm(x[i], x[j], gamma);
+	}
+	double kernel_asin_norm(int i, int j) const
+	{
+		return asin_elm(x[i], x[j], gamma)/sqrt(
+			asin_elm_equal(x[i], gamma)*asin_elm_equal(x[j], gamma)
+		);
+	}
+	double kernel_acos_0(int i, int j) const
+	{
+		return 1 - M_1_PI*acos(dot(x[i], x[j])/sqrt(dot(x[i], x[i])*dot(x[j], x[j])));
+	}
+	double kernel_acos_1(int i, int j) const
+	{
+		const double xy = sqrt(dot(x[i], x[i])*dot(x[j], x[j]));
+		const double xy_xy = dot(x[i], x[j])/xy;
+		const double theta = acos(xy_xy);
+		return M_1_PI*xy*(sin(theta) + (M_PI - theta)*xy_xy);
+	}
+	double kernel_acos_2(int i, int j) const
+	{
+		const double xy2 = dot(x[i], x[i])*dot(x[j], x[j]);
+		const double xy = sqrt(xy2);
+		const double xy_xy = dot(x[i], x[j])/xy;
+		const double theta = acos(xy_xy);
+		return M_1_PI*xy2*(3*sin(theta)*xy_xy + (M_PI - theta)*(1 + 2*xy_xy*xy_xy));
+	}
 };
 
 Kernel::Kernel(int l, svm_node * const * x_, const svm_parameter& param)
@@ -319,21 +319,21 @@ Kernel::Kernel(int l, svm_node * const * x_, const svm_parameter& param)
 		case PRECOMPUTED:
 			kernel_function = &Kernel::kernel_precomputed;
 			break;
-        case ASIN:
-            kernel_function = &Kernel::kernel_asin;
-            break;
-        case ASIN_NORM:
-            kernel_function = &Kernel::kernel_asin_norm;
-            break;
-        case ACOS_0:
-            kernel_function = &Kernel::kernel_acos_0;
-            break;
-        case ACOS_1:
-            kernel_function = &Kernel::kernel_acos_1;
-            break;
-        case ACOS_2:
-            kernel_function = &Kernel::kernel_acos_2;
-            break;
+		case ASIN:
+			kernel_function = &Kernel::kernel_asin;
+			break;
+		case ASIN_NORM:
+			kernel_function = &Kernel::kernel_asin_norm;
+			break;
+		case ACOS_0:
+			kernel_function = &Kernel::kernel_acos_0;
+			break;
+		case ACOS_1:
+			kernel_function = &Kernel::kernel_acos_1;
+			break;
+		case ACOS_2:
+			kernel_function = &Kernel::kernel_acos_2;
+			break;
 	}
 
 	clone(x,x_,l);
@@ -430,27 +430,27 @@ double Kernel::k_function(const svm_node *x, const svm_node *y,
 			return tanh(param.gamma*dot(x,y)+param.coef0);
 		case PRECOMPUTED:  //x: test (validation), y: SV
 			return x[(int)(y->value)].value;
-        case ASIN:
-            return M_2_PI*asin_elm(x, y, param.gamma);
-        case ASIN_NORM:
-            return asin_elm(x, y, param.gamma)/sqrt(asin_elm(x, x, param.gamma)*asin_elm(y, y, param.gamma));
-        case ACOS_0:
-            return 1 - M_1_PI*acos(dot(x, y)/sqrt(dot(x, x)*dot(y, y)));
-        case ACOS_1:
-            {
-                const double xy = sqrt(dot(x, x)*dot(y, y));
-                const double xy_xy = dot(x, y)/xy;
-                const double theta = acos(xy_xy);
-                return M_1_PI*xy*(sin(theta) + (M_PI - theta)*xy_xy);
-            }
-        case ACOS_2:
-            {
-                const double xy2 = dot(x, x)*dot(y, y);
-                const double xy = sqrt(xy2);
-                const double xy_xy = dot(x, y)/xy;
-                const double theta = acos(xy_xy);
-                return M_1_PI*xy2*(3*sin(theta)*xy_xy + (M_PI - theta)*(1 + 2*xy_xy*xy_xy));
-            }
+		case ASIN:
+			return M_2_PI*asin_elm(x, y, param.gamma);
+		case ASIN_NORM:
+			return asin_elm(x, y, param.gamma)/sqrt(asin_elm(x, x, param.gamma)*asin_elm(y, y, param.gamma));
+		case ACOS_0:
+			return 1 - M_1_PI*acos(dot(x, y)/sqrt(dot(x, x)*dot(y, y)));
+		case ACOS_1:
+			{
+				const double xy = sqrt(dot(x, x)*dot(y, y));
+				const double xy_xy = dot(x, y)/xy;
+				const double theta = acos(xy_xy);
+				return M_1_PI*xy*(sin(theta) + (M_PI - theta)*xy_xy);
+			}
+		case ACOS_2:
+			{
+				const double xy2 = dot(x, x)*dot(y, y);
+				const double xy = sqrt(xy2);
+				const double xy_xy = dot(x, y)/xy;
+				const double theta = acos(xy_xy);
+				return M_1_PI*xy2*(3*sin(theta)*xy_xy + (M_PI - theta)*(1 + 2*xy_xy*xy_xy));
+			}
 		default:
 			return 0;  // Unreachable
 	}
@@ -872,8 +872,8 @@ int Solver::select_working_set(int &out_i, int &out_j)
 	// return i,j such that
 	// i: maximizes -y_i * grad(f)_i, i in I_up(\alpha)
 	// j: minimizes the decrease of obj value
-	//    (if quadratic coefficeint <= 0, replace it with tau)
-	//    -y_j*grad(f)_j < -y_i*grad(f)_i, j in I_low(\alpha)
+	//	(if quadratic coefficeint <= 0, replace it with tau)
+	//	-y_j*grad(f)_j < -y_i*grad(f)_i, j in I_low(\alpha)
 
 	double Gmax = -INF;
 	double Gmax2 = -INF;
@@ -1115,8 +1115,8 @@ int Solver_NU::select_working_set(int &out_i, int &out_j)
 	// return i,j such that y_i = y_j and
 	// i: maximizes -y_i * grad(f)_i, i in I_up(\alpha)
 	// j: minimizes the decrease of obj value
-	//    (if quadratic coefficeint <= 0, replace it with tau)
-	//    -y_j*grad(f)_j < -y_i*grad(f)_i, j in I_low(\alpha)
+	//	(if quadratic coefficeint <= 0, replace it with tau)
+	//	-y_j*grad(f)_j < -y_i*grad(f)_i, j in I_low(\alpha)
 
 	double Gmaxp = -INF;
 	double Gmaxp2 = -INF;
@@ -2298,7 +2298,7 @@ svm_model *svm_train(const svm_problem *prob, const svm_parameter *param)
 
 		if(param->probability &&
 		   (param->svm_type == EPSILON_SVR ||
-		    param->svm_type == NU_SVR))
+			param->svm_type == NU_SVR))
 		{
 			model->probA = Malloc(double,1);
 			model->probA[0] = svm_svr_probability(prob,param);
@@ -2531,7 +2531,7 @@ void svm_cross_validation(const svm_problem *prob, const svm_parameter *param, i
 	// stratified cv may not give leave-one-out rate
 	// Each class to l folds -> some folds may have zero elements
 	if((param->svm_type == C_SVC ||
-	    param->svm_type == NU_SVC) && nr_fold < l)
+		param->svm_type == NU_SVC) && nr_fold < l)
 	{
 		int *start = NULL;
 		int *label = NULL;
@@ -2668,7 +2668,7 @@ int svm_get_nr_sv(const svm_model *model)
 double svm_get_svr_probability(const svm_model *model)
 {
 	if ((model->param.svm_type == EPSILON_SVR || model->param.svm_type == NU_SVR) &&
-	    model->probA!=NULL)
+		model->probA!=NULL)
 		return model->probA[0];
 	else
 	{
@@ -2778,7 +2778,7 @@ double svm_predict_probability(
 	const svm_model *model, const svm_node *x, double *prob_estimates)
 {
 	if ((model->param.svm_type == C_SVC || model->param.svm_type == NU_SVC) &&
-	    model->probA!=NULL && model->probB!=NULL)
+		model->probA!=NULL && model->probB!=NULL)
 	{
 		int i;
 		int nr_class = model->nr_class;
@@ -2967,7 +2967,7 @@ static char* readline(FILE *input)
 // FSCANF helps to handle fscanf failures.
 // Its do-while block avoids the ambiguity when
 // if (...)
-//    FSCANF();
+//	FSCANF();
 // is used
 //
 #define FSCANF(_stream, _format, _var) do{ if (fscanf(_stream, _format, _var) != 1) return false; }while(0)
@@ -3276,11 +3276,11 @@ const char *svm_check_parameter(const svm_problem *prob, const svm_parameter *pa
 	   kernel_type != SIGMOID &&
 	   kernel_type != PRECOMPUTED &&
 	   kernel_type != ASIN &&
-       kernel_type != ASIN_NORM &&
-       kernel_type != ACOS_0 &&
-       kernel_type != ACOS_1 &&
-       kernel_type != ACOS_2
-    )
+	   kernel_type != ASIN_NORM &&
+	   kernel_type != ACOS_0 &&
+	   kernel_type != ACOS_1 &&
+	   kernel_type != ACOS_2
+	)
 		return "unknown kernel type";
 
 	if((kernel_type == POLY || kernel_type == RBF || kernel_type == SIGMOID || kernel_type == ASIN || kernel_type == ASIN_NORM) &&
