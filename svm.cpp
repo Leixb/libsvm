@@ -485,6 +485,7 @@ public:
 		double upper_bound_p;
 		double upper_bound_n;
 		double r;	// for Solver_NU
+		int n_iter;
 	};
 
 	void Solve(int l, const QMatrix& Q, const double *p_, const schar *y_,
@@ -831,6 +832,9 @@ void Solver::Solve(int l, const QMatrix& Q, const double *p_, const schar *y_,
 
 		si->obj = v/2;
 	}
+
+	// store number of iterations
+	si->n_iter = iter;
 
 	// put back the solution
 	{
