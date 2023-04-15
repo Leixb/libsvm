@@ -14,6 +14,10 @@ endif
 
 all: svm-train svm-predict svm-scale
 
+all-openmp: CFLAGS += -fopenmp
+all-openmp: SHARED_LIB_FLAG += -fopenmp
+all-openmp: all
+
 debug: CFLAGS += -g -DDEBUG
 debug: all
 
