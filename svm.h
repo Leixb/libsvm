@@ -62,6 +62,7 @@ struct svm_model
 	double *probB;
 	double *prob_density_marks;	/* probability information for ONE_CLASS */
 	int *sv_indices;        /* sv_indices[0,...,nSV-1] are values in [1,...,num_traning_data] to indicate SVs in the training set */
+	int *n_iter;		/* number of iterations for each class */
 
 	/* for classification only */
 

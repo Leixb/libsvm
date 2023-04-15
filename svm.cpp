@@ -1730,6 +1730,7 @@ struct decision_function
 {
 	double *alpha;
 	double rho;
+	int n_iter;
 };
 
 static decision_function svm_train_one(
@@ -1786,6 +1787,7 @@ static decision_function svm_train_one(
 	decision_function f;
 	f.alpha = alpha;
 	f.rho = si.rho;
+	f.n_iter = si.n_iter;
 	return f;
 }
 
@@ -2275,6 +2277,8 @@ svm_model *svm_train(const svm_problem *prob, const svm_parameter *param)
 		decision_function f = svm_train_one(prob,param,0,0);
 		model->rho = Malloc(double,1);
 		model->rho[0] = f.rho;
+		model->n_iter = Malloc(int,1);
+		model->n_iter[0] = f.n_iter;
 
 		int nSV = 0;
 		int i;
@@ -2411,8 +2415,11 @@ svm_model *svm_train(const svm_problem *prob, const svm_parameter *param)
 			model->label[i] = label[i];
 
 		model->rho = Malloc(double,nr_class*(nr_class-1)/2);
-		for(i=0;i<nr_class*(nr_class-1)/2;i++)
+		model->n_iter = Malloc(int,nr_class*(nr_class-1)/2);
+		for(i=0;i<nr_class*(nr_class-1)/2;i++) {
 			model->rho[i] = f[i].rho;
+			model->n_iter[i] = f[i].n_iter;
+		}
 
 		if(param->probability)
 		{
@@ -3235,6 +3242,9 @@ void svm_free_model_content(svm_model* model_ptr)
 
 	free(model_ptr->nSV);
 	model_ptr->nSV = NULL;
+
+	free(model_ptr->n_iter);
+	model_ptr->n_iter = NULL;
 }
 
 void svm_free_and_destroy_model(svm_model** model_ptr_ptr)
