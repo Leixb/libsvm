@@ -236,15 +236,20 @@ private:
 
 	static double dot(const svm_node *px, const svm_node *py);
 
+	// Case where x and y are the same vector (faster computation) x \cdot y = ||x||^2
+	static double dot(const svm_node *px);
+
 	static inline double asin_elm(const svm_node *x, const svm_node *y, const double gamma) { 
-		return asin((1 + dot(x, y))/sqrt(
-						(gamma + 1.0 + dot(x, x))*
-						(gamma + 1.0 + dot(y, y))
+		return asin((1.0 + dot(x, y))/sqrt(
+						(gamma + 1.0 + dot(x))*
+						(gamma + 1.0 + dot(y))
 					));
 	}
 
+	// AsinELM with x=y, for faster computation, we don't need to compute the sqrt
 	static inline double asin_elm_equal(const svm_node *x, const double gamma) {
-		return asin((1 + dot(x, x))/(gamma + 1.0 + dot(x, x)));
+		const double dot_xx_plus_one = 1.0 + dot(x);
+		return asin(dot_xx_plus_one/(gamma + dot_xx_plus_one));
 	}
 
 	double kernel_linear(int i, int j) const
@@ -279,11 +284,11 @@ private:
 	}
 	double kernel_acos_0(int i, int j) const
 	{
-		return 1 - M_1_PI*acos(dot(x[i], x[j])/sqrt(dot(x[i], x[i])*dot(x[j], x[j])));   // 1 - 1/π*acos((x ⋅ y)/(||x||*||y||)) = 1 - θ/π
+		return 1.0 - M_1_PI*acos(dot(x[i], x[j])/sqrt(dot(x[i])*dot(x[j])));             // 1 - 1/π*acos((x ⋅ y)/(||x||*||y||)) = 1 - θ/π
 	}
 	double kernel_acos_1(int i, int j) const
 	{
-		const double x2y2 = dot(x[i], x[i])*dot(x[j], x[j]);                             // ||x||^2*||y||^2
+		const double x2y2 = dot(x[i])*dot(x[j]);                                         // ||x||^2*||y||^2
 		const double xy = sqrt(x2y2);                                                    // ||x||*||y||
 		const double cos_theta = dot(x[i], x[j])/xy;                                     // (x ⋅ y)/(||x||*||y||) = cos(θ)
 		const double theta = acos(cos_theta);                                            // θ = acos((x ⋅ y)/(||x||*||y||))
@@ -291,7 +296,7 @@ private:
 	}
 	double kernel_acos_2(int i, int j) const
 	{
-		const double x2y2 = dot(x[i], x[i])*dot(x[j], x[j]);                             // ||x||^2*||y||^2
+		const double x2y2 = dot(x[i])*dot(x[j]);                                         // ||x||^2*||y||^2
 		const double sqrt_x2y2 = sqrt(x2y2);                                             // ||x||*||y||
 		const double dot_xy = dot(x[i], x[j]);                                           // x ⋅ y
 		const double cos_theta = dot_xy/sqrt_x2y2;                                       // (x ⋅ y)/(||x||*||y||) = cos(θ)
@@ -379,6 +384,17 @@ double Kernel::dot(const svm_node *px, const svm_node *py)
 	return sum;
 }
 
+double Kernel::dot(const svm_node *px)
+{
+	double sum = 0;
+	while(px->index != -1)
+	{
+		sum += px->value * px->value;
+		++px;
+	}
+	return sum;
+}
+
 double Kernel::k_function(const svm_node *x, const svm_node *y,
 			  const svm_parameter& param)
 {
@@ -436,12 +452,12 @@ double Kernel::k_function(const svm_node *x, const svm_node *y,
 		case ASIN:
 			return M_2_PI*asin_elm(x, y, param.gamma);
 		case ASIN_NORM:
-			return asin_elm(x, y, param.gamma)/sqrt(asin_elm(x, x, param.gamma)*asin_elm(y, y, param.gamma));
+			return asin_elm(x, y, param.gamma)/sqrt(asin_elm_equal(x, param.gamma)*asin_elm_equal(y, param.gamma));
 		case ACOS_0:
-			return 1 - M_1_PI*acos(dot(x, y)/sqrt(dot(x, x)*dot(y, y)));                         // 1 - 1/π*acos((x ⋅ y)/(||x||*||y||)) = 1 - θ/π
+			return 1 - M_1_PI*acos(dot(x, y)/sqrt(dot(x)*dot(y)));                               // 1 - 1/π*acos((x ⋅ y)/(||x||*||y||)) = 1 - θ/π
 		case ACOS_1:
 			{
-				const double x2y2 = dot(x, x)*dot(y, y);                                         // ||x||^2*||y||^2
+				const double x2y2 = dot(x)*dot(y);                                               // ||x||^2*||y||^2
 				const double xy = sqrt(x2y2);                                                    // ||x||*||y||
 				const double cos_theta = dot(x, y)/xy;                                           // (x ⋅ y)/(||x||*||y||) = cos(θ)
 				const double theta = acos(cos_theta);                                            // θ = acos((x ⋅ y)/(||x||*||y||))
@@ -449,7 +465,7 @@ double Kernel::k_function(const svm_node *x, const svm_node *y,
 			}
 		case ACOS_2:
 			{
-				const double x2y2 = dot(x, x)*dot(y, y);                                         // ||x||^2*||y||^2
+				const double x2y2 = dot(x)*dot(y);                                               // ||x||^2*||y||^2
 				const double sqrt_x2y2 = sqrt(x2y2);                                             // ||x||*||y||
 				const double dot_xy = dot(x, y);                                                 // x ⋅ y
 				const double cos_theta = dot_xy/sqrt_x2y2;                                       // (x ⋅ y)/(||x||*||y||) = cos(θ)
