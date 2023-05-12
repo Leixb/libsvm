@@ -346,11 +346,11 @@ Kernel::Kernel(int l, svm_node * const * x_, const svm_parameter& param)
 
 	clone(x,x_,l);
 
-	if(kernel_type == RBF || kernel_type == ASIN || kernel_type == ASIN_NORM)
+	if(kernel_type == RBF || kernel_type == ASIN || kernel_type == ASIN_NORM || kernel_type == ACOS_0 || kernel_type == ACOS_1 || kernel_type == ACOS_2)
 	{
 		x_square = new double[l];
 		for(int i=0;i<l;i++)
-			x_square[i] = dot(x[i],x[i]);
+			x_square[i] = dot(x[i]);
 	}
 	else
 		x_square = 0;
