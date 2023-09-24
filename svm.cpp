@@ -304,10 +304,8 @@ private:
 	double kernel_acos_2(int i, int j) const
 	{
 		const double x2y2 = x_square[i]*x_square[j];                                     // ||x||^2*||y||^2
-		const double sqrt_x2y2 = sqrt(x2y2);                                             // ||x||*||y||
-		const double dot_xy = dot(x[i], x[j]);                                           // x ⋅ y
-		const double cos_theta = dot_xy/sqrt_x2y2;                                       // (x ⋅ y)/(||x||*||y||) = cos(θ)
-		const double cos2_theta = dot_xy*dot_xy/x2y2;                                    // (x ⋅ y)^2/(||x||^2*||y||^2) = cos^2(θ)
+		const double cos_theta = dot(x[i], x[j])/sqrt(x2y2);                             // (x ⋅ y)/(||x||*||y||) = cos(θ)
+		const double cos2_theta = cos_theta*cos_theta;                                   // cos^2(θ)
 		const double theta = acos(cos_theta);                                            // θ = acos((x ⋅ y)/(||x||*||y||))
 		return M_1_PI*x2y2*(3*sin(theta)*cos_theta + (M_PI - theta)*(1 + 2*cos2_theta)); // 1/π*||x||^2*||y||^2*(3*sin(θ)*cos(θ) + (π - θ)*(1 + 2*cos^2(θ)))
 	}
@@ -473,10 +471,8 @@ double Kernel::k_function(const svm_node *x, const svm_node *y,
 		case ACOS_2:
 			{
 				const double x2y2 = dot(x)*dot(y);                                               // ||x||^2*||y||^2
-				const double sqrt_x2y2 = sqrt(x2y2);                                             // ||x||*||y||
-				const double dot_xy = dot(x, y);                                                 // x ⋅ y
-				const double cos_theta = dot_xy/sqrt_x2y2;                                       // (x ⋅ y)/(||x||*||y||) = cos(θ)
-				const double cos2_theta = dot_xy*dot_xy/x2y2;                                    // (x ⋅ y)^2/(||x||^2*||y||^2) = cos^2(θ)
+				const double cos_theta = dot(x, y)/sqrt(x2y2);                                   // (x ⋅ y)/(||x||*||y||) = cos(θ)
+				const double cos2_theta = cos_theta*cos_theta;                                   // cos^2(θ)
 				const double theta = acos(cos_theta);                                            // θ = acos((x ⋅ y)/(||x||*||y||))
 				return M_1_PI*x2y2*(3*sin(theta)*cos_theta + (M_PI - theta)*(1 + 2*cos2_theta)); // 1/π*||x||^2*||y||^2*(3*sin(θ)*cos(θ) + (π - θ)*(1 + 2*cos^2(θ)))
 			}
