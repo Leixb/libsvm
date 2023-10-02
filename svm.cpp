@@ -309,6 +309,19 @@ private:
 		const double theta = acos(cos_theta);                                            // θ = acos((x ⋅ y)/(||x||*||y||))
 		return M_1_PI*x2y2*(3*sin(theta)*cos_theta + (M_PI - theta)*(1 + 2*cos2_theta)); // 1/π*||x||^2*||y||^2*(3*sin(θ)*cos(θ) + (π - θ)*(1 + 2*cos^2(θ)))
 	}
+	double kernel_acos_1_norm(int i, int j) const
+	{
+		const double cos_theta = dot(x[i], x[j])/sqrt(x_square[i]*x_square[j]);          // (x ⋅ y)/(||x||*||y||) = cos(θ)
+		const double theta = acos(cos_theta);                                            // θ = acos((x ⋅ y)/(||x||*||y||))
+		return M_1_PI*(sin(theta) + (M_PI - theta)*cos_theta);                           // 1/π*(sin(θ) + (π - θ)*cos(θ))
+	}
+	double kernel_acos_2_norm(int i, int j) const
+	{
+		const double cos_theta = dot(x[i], x[j])/sqrt(x_square[i]*x_square[j]);          // (x ⋅ y)/(||x||*||y||) = cos(θ)
+		const double cos2_theta = cos_theta*cos_theta;                                   // cos^2(θ)
+		const double theta = acos(cos_theta);                                            // θ = acos((x ⋅ y)/(||x||*||y||))
+		return M_1_PI*(3*sin(theta)*cos_theta + (M_PI - theta)*(1 + 2*cos2_theta));      // 1/π*||x||^2*||y||^2*(3*sin(θ)*cos(θ) + (π - θ)*(1 + 2*cos^2(θ)))
+	}
 };
 
 Kernel::Kernel(int l, svm_node * const * x_, const svm_parameter& param)
@@ -347,11 +360,22 @@ Kernel::Kernel(int l, svm_node * const * x_, const svm_parameter& param)
 		case ACOS_2:
 			kernel_function = &Kernel::kernel_acos_2;
 			break;
+		case ACOS_1_NORM:
+			kernel_function = &Kernel::kernel_acos_1_norm;
+			break;
+		case ACOS_2_NORM:
+			kernel_function = &Kernel::kernel_acos_2_norm;
+			break;
 	}
 
 	clone(x,x_,l);
 
-	if(kernel_type == RBF || kernel_type == ASIN || kernel_type == ASIN_NORM || kernel_type == ACOS_0 || kernel_type == ACOS_1 || kernel_type == ACOS_2)
+	if(
+		kernel_type == RBF ||
+		kernel_type == ASIN || kernel_type == ASIN_NORM ||
+		kernel_type == ACOS_0 || kernel_type == ACOS_1 || kernel_type == ACOS_2 ||
+		kernel_type == ACOS_1_NORM || kernel_type == ACOS_2_NORM
+	)
 	{
 		x_square = new double[l];
 		for(int i=0;i<l;i++)
@@ -475,6 +499,19 @@ double Kernel::k_function(const svm_node *x, const svm_node *y,
 				const double cos2_theta = cos_theta*cos_theta;                                   // cos^2(θ)
 				const double theta = acos(cos_theta);                                            // θ = acos((x ⋅ y)/(||x||*||y||))
 				return M_1_PI*x2y2*(3*sin(theta)*cos_theta + (M_PI - theta)*(1 + 2*cos2_theta)); // 1/π*||x||^2*||y||^2*(3*sin(θ)*cos(θ) + (π - θ)*(1 + 2*cos^2(θ)))
+			}
+		case ACOS_1_NORM:
+			{
+				const double cos_theta = dot(x, y)/sqrt(dot(x)*dot(y));                          // (x ⋅ y)/(||x||*||y||) = cos(θ)
+				const double theta = acos(cos_theta);                                            // θ = acos((x ⋅ y)/(||x||*||y||))
+				return M_1_PI*(sin(theta) + (M_PI - theta)*cos_theta);                           // 1/π*(sin(θ) + (π - θ)*cos(θ))
+			}
+		case ACOS_2_NORM:
+			{
+				const double cos_theta = dot(x, y)/sqrt(dot(x)*dot(y));                          // (x ⋅ y)/(||x||*||y||) = cos(θ)
+				const double cos2_theta = cos_theta*cos_theta;                                   // cos^2(θ)
+				const double theta = acos(cos_theta);                                            // θ = acos((x ⋅ y)/(||x||*||y||))
+				return M_1_PI*(3*sin(theta)*cos_theta + (M_PI - theta)*(1 + 2*cos2_theta));      // 1/π*(3*sin(θ)*cos(θ) + (π - θ)*(1 + 2*cos^2(θ)))
 			}
 		default:
 			return 0;  // Unreachable

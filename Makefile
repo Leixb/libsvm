@@ -1,5 +1,5 @@
 CXX ?= g++
-CFLAGS = -Wall -Wconversion -O3 -fPIC
+CFLAGS = -Wall -Wconversion -O3 -fPIC -fpermissive
 SHVER = 3
 OS = $(shell uname)
 ifeq ($(OS),Darwin)
