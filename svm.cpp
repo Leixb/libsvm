@@ -3349,7 +3349,9 @@ const char *svm_check_parameter(const svm_problem *prob, const svm_parameter *pa
 	   kernel_type != ASIN_NORM &&
 	   kernel_type != ACOS_0 &&
 	   kernel_type != ACOS_1 &&
-	   kernel_type != ACOS_2
+	   kernel_type != ACOS_2 &&
+	   kernel_type != ACOS_1_NORM &&
+	   kernel_type != ACOS_2_NORM
 	)
 		return "unknown kernel type";
 
